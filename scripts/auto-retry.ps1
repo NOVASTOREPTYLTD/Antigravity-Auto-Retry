@@ -137,6 +137,22 @@ function Get-RetryButtons {
     return $buttons
 }
 
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class MouseHelper {
+    [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
+    [DllImport("user32.dll")] public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, int dwExtraInfo);
+    public const uint MOUSEEVENTF_LEFTDOWN = 0x02;
+    public const uint MOUSEEVENTF_LEFTUP = 0x04;
+    public static void Click(int x, int y) {
+        SetCursorPos(x, y);
+        mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+        mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+    }
+}
+"@
+
 function Try-AutoApprovePermission {
     if ($script:AutoSelectPermission -eq "None" -or $script:AutoSelectPermission -eq "") {
         return $false
@@ -145,6 +161,7 @@ function Try-AutoApprovePermission {
     $windows = @(Get-AntigravityWindows)
     foreach ($window in $windows) {
         try {
+            # Find Submit button
             $submitBtn = $null
             $allItems = $window.FindAll($descendants, $trueCondition)
             foreach ($item in $allItems) {
@@ -152,50 +169,129 @@ function Try-AutoApprovePermission {
                     $name = $item.Current.Name
                     if ($name -match "^Submit") {
                         $submitBtn = $item
+                        Write-AutoRetryLog "[PERM] Found Submit button: '$name'"
                         break
                     }
                 } catch {}
             }
 
-            if ($submitBtn -and $submitBtn.Current.IsEnabled) {
-                $allItems = $window.FindAll($descendants, $trueCondition)
-                $foundOption = $null
-                foreach ($item in $allItems) {
-                    try {
-                        $name = $item.Current.Name
-                        if ($name -match "^$($script:AutoSelectPermission)\s+Yes" -or $name -match "^$($script:AutoSelectPermission)\s+No") {
-                            $foundOption = $item
-                            break
-                        }
-                    } catch {}
-                }
+            if (-not $submitBtn -or -not $submitBtn.Current.IsEnabled) {
+                continue
+            }
 
-                if ($foundOption) {
-                    $selected = $false
-                    try {
-                        $selectionPattern = $foundOption.GetCurrentPattern([System.Windows.Automation.SelectionItemPatternIdentifiers]::Pattern)
-                        $selectionPattern.Select()
+            # Find the target option
+            $allItems = $window.FindAll($descendants, $trueCondition)
+            $foundOption = $null
+            foreach ($item in $allItems) {
+                try {
+                    $name = $item.Current.Name
+                    $ctrlType = $item.Current.ControlType.ProgrammaticName
+                    # Log items that start with a number to help debug
+                    if ($name -match "^\d") {
+                        Write-AutoRetryLog "[PERM] Found numbered item: '$name' (type: $ctrlType)"
+                    }
+                    if ($name -match "^$($script:AutoSelectPermission)\s+Yes" -or $name -match "^$($script:AutoSelectPermission)\s+No") {
+                        $foundOption = $item
+                        Write-AutoRetryLog "[PERM] Matched target option: '$name'"
+                        break
+                    }
+                } catch {}
+            }
+
+            if (-not $foundOption) {
+                Write-AutoRetryLog "[PERM] Submit found but could not find option '$($script:AutoSelectPermission)'"
+                continue
+            }
+
+            # Try to select the option using multiple strategies
+            $selected = $false
+
+            # Strategy 1: SelectionItemPattern
+            try {
+                $selectionPattern = $foundOption.GetCurrentPattern([System.Windows.Automation.SelectionItemPatternIdentifiers]::Pattern)
+                $selectionPattern.Select()
+                $selected = $true
+                Write-AutoRetryLog "[PERM] Selected via SelectionItemPattern"
+            } catch {
+                Write-AutoRetryLog "[PERM] SelectionItemPattern failed: $($_.Exception.Message)"
+            }
+            
+            # Strategy 2: InvokePattern
+            if (-not $selected) {
+                try {
+                    $invokePattern = $foundOption.GetCurrentPattern([System.Windows.Automation.InvokePatternIdentifiers]::Pattern)
+                    $invokePattern.Invoke()
+                    $selected = $true
+                    Write-AutoRetryLog "[PERM] Selected via InvokePattern"
+                } catch {
+                    Write-AutoRetryLog "[PERM] InvokePattern failed: $($_.Exception.Message)"
+                }
+            }
+
+            # Strategy 3: TogglePattern
+            if (-not $selected) {
+                try {
+                    $togglePattern = $foundOption.GetCurrentPattern([System.Windows.Automation.TogglePatternIdentifiers]::Pattern)
+                    $togglePattern.Toggle()
+                    $selected = $true
+                    Write-AutoRetryLog "[PERM] Selected via TogglePattern"
+                } catch {
+                    Write-AutoRetryLog "[PERM] TogglePattern failed: $($_.Exception.Message)"
+                }
+            }
+
+            # Strategy 4: Direct mouse click on the option element
+            if (-not $selected) {
+                try {
+                    $rect = $foundOption.Current.BoundingRectangle
+                    if ($rect.Width -gt 0 -and $rect.Height -gt 0) {
+                        $cx = [int]($rect.X + $rect.Width / 2)
+                        $cy = [int]($rect.Y + $rect.Height / 2)
+                        [MouseHelper]::Click($cx, $cy)
                         $selected = $true
-                    } catch {}
-                    
-                    if (-not $selected) {
-                        try {
-                            $invokePattern = $foundOption.GetCurrentPattern([System.Windows.Automation.InvokePatternIdentifiers]::Pattern)
-                            $invokePattern.Invoke()
-                            $selected = $true
-                        } catch {}
+                        Write-AutoRetryLog "[PERM] Selected via mouse click at ($cx, $cy)"
                     }
+                } catch {
+                    Write-AutoRetryLog "[PERM] Mouse click failed: $($_.Exception.Message)"
+                }
+            }
 
-                    if ($selected) {
-                        Start-Sleep -Milliseconds 50
-                        try {
-                            $submitInvoke = $submitBtn.GetCurrentPattern([System.Windows.Automation.InvokePatternIdentifiers]::Pattern)
-                            $submitInvoke.Invoke()
-                            Write-AutoRetryLog "Auto-selected permission option '$($script:AutoSelectPermission)' and submitted."
-                            return $true
-                        } catch {}
+            if ($selected) {
+                Start-Sleep -Milliseconds 200
+
+                # Click Submit button
+                $submitClicked = $false
+                try {
+                    $submitInvoke = $submitBtn.GetCurrentPattern([System.Windows.Automation.InvokePatternIdentifiers]::Pattern)
+                    $submitInvoke.Invoke()
+                    $submitClicked = $true
+                    Write-AutoRetryLog "[PERM] Submitted via InvokePattern"
+                } catch {
+                    Write-AutoRetryLog "[PERM] Submit InvokePattern failed: $($_.Exception.Message)"
+                }
+
+                # Fallback: click Submit with mouse
+                if (-not $submitClicked) {
+                    try {
+                        $rect = $submitBtn.Current.BoundingRectangle
+                        if ($rect.Width -gt 0 -and $rect.Height -gt 0) {
+                            $cx = [int]($rect.X + $rect.Width / 2)
+                            $cy = [int]($rect.Y + $rect.Height / 2)
+                            [MouseHelper]::Click($cx, $cy)
+                            $submitClicked = $true
+                            Write-AutoRetryLog "[PERM] Submitted via mouse click at ($cx, $cy)"
+                        }
+                    } catch {
+                        Write-AutoRetryLog "[PERM] Submit mouse click failed: $($_.Exception.Message)"
                     }
                 }
+
+                if ($submitClicked) {
+                    Write-AutoRetryLog "Auto-selected permission option '$($script:AutoSelectPermission)' and submitted."
+                    return $true
+                }
+            } else {
+                Write-AutoRetryLog "[PERM] All selection strategies failed for option '$($script:AutoSelectPermission)'"
             }
         } catch {}
     }
