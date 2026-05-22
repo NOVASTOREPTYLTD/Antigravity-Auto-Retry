@@ -145,11 +145,17 @@ function Try-AutoApprovePermission {
     $windows = @(Get-AntigravityWindows)
     foreach ($window in $windows) {
         try {
-            $submitCondition = New-Object System.Windows.Automation.PropertyCondition(
-                [System.Windows.Automation.AutomationElement]::NameProperty,
-                "Submit"
-            )
-            $submitBtn = $window.FindFirst($descendants, $submitCondition)
+            $submitBtn = $null
+            $allItems = $window.FindAll($descendants, $trueCondition)
+            foreach ($item in $allItems) {
+                try {
+                    $name = $item.Current.Name
+                    if ($name -match "^Submit") {
+                        $submitBtn = $item
+                        break
+                    }
+                } catch {}
+            }
 
             if ($submitBtn -and $submitBtn.Current.IsEnabled) {
                 $allItems = $window.FindAll($descendants, $trueCondition)
