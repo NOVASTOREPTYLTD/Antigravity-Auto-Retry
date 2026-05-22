@@ -1,0 +1,88 @@
+{
+  "name": "antigravity-auto-retry",
+  "displayName": "Antigravity Auto Retry",
+  "description": "Automatically clicks the Retry button for Antigravity IDE tasks",
+  "version": "1.0.0",
+  "publisher": "novastore",
+  "publisherDisplayName": "NOVASTORE (PTY) LTD",
+  "author": "NOVASTORE (PTY) LTD",
+  "icon": "icon_main.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "antigravityAutoRetry.start",
+        "title": "Antigravity Auto Retry: Start"
+      },
+      {
+        "command": "antigravityAutoRetry.stop",
+        "title": "Antigravity Auto Retry: Stop"
+      },
+      {
+        "command": "antigravityAutoRetry.toggle",
+        "title": "Antigravity Auto Retry: Toggle"
+      },
+      {
+        "command": "antigravityAutoRetry.openSettings",
+        "title": "Antigravity Auto Retry: Open Settings"
+      }
+    ],
+    "configuration": {
+      "title": "Antigravity Auto Retry",
+      "properties": {
+        "antigravityAutoRetry.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable auto-retry"
+        },
+        "antigravityAutoRetry.intervalMilliseconds": {
+          "type": "number",
+          "default": 100,
+          "description": "How often to check for the Retry button (in milliseconds)"
+        },
+        "antigravityAutoRetry.autoSelectPermission": {
+          "type": "string",
+          "default": "None",
+          "enum": [
+            "None",
+            "1",
+            "2",
+            "3"
+          ],
+          "enumItemLabels": [
+            "Do nothing",
+            "1 Yes, allow this time",
+            "2 Yes, and always allow",
+            "3 No (tell the agent what to do instead)"
+          ],
+          "description": "Automatically select and submit an option on the 'Allow write access' permission prompt."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "18.x",
+    "typescript": "^5.3.3",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0"
+  }
+}

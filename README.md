@@ -1,0 +1,46 @@
+# Antigravity Auto Retry
+
+Automatically clicks the "Retry" button when an Antigravity IDE agent session fails due to a transient error (e.g., rate limits, internal server errors). 
+
+## How it works
+
+This extension silently monitors the Antigravity IDE for failure states and automatically sends the native VS Code command to retry (`workbench.action.chat.submit`). This keeps your long-running agent tasks flowing without manual intervention.
+
+* **Native Integration:** Directly triggers the retry command instead of clicking the UI.
+* **Non-intrusive:** Never steals your mouse or window focus.
+* **Smart Backoff:** Uses exponential backoff if the retry keeps failing.
+
+## Requirements
+
+* **Windows OS:** The underlying mechanism uses Windows UI Automation (`UIAutomationClient`).
+
+## Extension Settings
+
+This extension contributes the following settings:
+
+* `antigravityAutoRetry.enabled`: Enable or disable the auto-retry monitor.
+* `antigravityAutoRetry.intervalMilliseconds`: Check interval in milliseconds (default: `500`).
+* `antigravityAutoRetry.autoSelectPermission`: Automatically select and submit an option on the 'Allow write access' permission prompt. Options include "Do nothing" (default), "1 Yes, allow this time", "2 Yes, and always allow", and "3 No (tell the agent what to do instead)".
+
+You can easily access and configure these by opening the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and running the **Antigravity Auto Retry: Open Settings** command. You can also find them under the IDE's main Settings page by searching for "Antigravity Auto Retry".
+
+## Commands
+
+You can run any of these by opening the Command Palette (`Ctrl+Shift+P` on Windows/Linux, or `Cmd+Shift+P` on Mac) and typing:
+
+* **Antigravity Auto Retry: Start**
+* **Antigravity Auto Retry: Stop**
+* **Antigravity Auto Retry: Toggle** (Also available directly from the status bar)
+* **Antigravity Auto Retry: Open Settings** (Quickly open settings to edit retry speed)
+
+## Support Development
+
+This tool is provided by **NOVASTORE (PTY) LTD**.
+* Web Design: [versysmedia.com](https://versysmedia.com)
+* Online Store: [novastoretech.co.za](https://novastoretech.co.za)
+* Gym Tracker App: [novastore.co.za](https://novastore.co.za)
+
+
+## Disclaimer
+
+This is a community-created tool and is not officially affiliated with Google or the Antigravity team.
