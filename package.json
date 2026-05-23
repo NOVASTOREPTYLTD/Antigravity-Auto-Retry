@@ -1,6 +1,6 @@
 {
-  "name": "antigravity-auto-retry",
-  "displayName": "Antigravity Auto Retry",
+  "name": "novastore-antigravity-auto-retry",
+  "displayName": "Novastore Antigravity Auto Retry",
   "description": "Automatically clicks the Retry button for Antigravity IDE tasks",
   "version": "1.0.0",
   "publisher": "novastore",
@@ -48,23 +48,6 @@
           "type": "number",
           "default": 100,
           "description": "How often to check for the Retry button (in milliseconds)"
-        },
-        "antigravityAutoRetry.autoSelectPermission": {
-          "type": "string",
-          "default": "None",
-          "enum": [
-            "None",
-            "1",
-            "2",
-            "3"
-          ],
-          "enumItemLabels": [
-            "Do nothing",
-            "1 Yes, allow this time",
-            "2 Yes, and always allow",
-            "3 No (tell the agent what to do instead)"
-          ],
-          "description": "Automatically select and submit an option on the 'Allow write access' permission prompt."
         }
       }
     }

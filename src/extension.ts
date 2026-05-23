@@ -62,7 +62,6 @@ function startAutoRetry(context: vscode.ExtensionContext) {
 
     const config = vscode.workspace.getConfiguration('antigravityAutoRetry');
     const intervalMilliseconds = config.get<number>('intervalMilliseconds', 100);
-    const autoSelectPermission = config.get<string>('autoSelectPermission', 'None');
 
     const scriptPath = path.join(context.extensionPath, 'scripts', 'auto-retry.ps1');
     
@@ -72,8 +71,7 @@ function startAutoRetry(context: vscode.ExtensionContext) {
         '-ExecutionPolicy', 'Bypass',
         '-File', scriptPath,
         '-IntervalMilliseconds', intervalMilliseconds.toString(),
-        '-ExitWhenIdeMissingSeconds', '0',
-        '-AutoSelectPermission', autoSelectPermission
+        '-ExitWhenIdeMissingSeconds', '0'
     ];
 
     outputChannel.appendLine(`Starting Auto Retry with args: ${args.join(' ')}`);

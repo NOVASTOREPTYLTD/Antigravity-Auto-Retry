@@ -20,7 +20,6 @@ This extension contributes the following settings:
 
 * `antigravityAutoRetry.enabled`: Enable or disable the auto-retry monitor.
 * `antigravityAutoRetry.intervalMilliseconds`: Check interval in milliseconds (default: `500`).
-* `antigravityAutoRetry.autoSelectPermission`: Automatically select and submit an option on the 'Allow write access' permission prompt. Options include "Do nothing" (default), "1 Yes, allow this time", "2 Yes, and always allow", and "3 No (tell the agent what to do instead)".
 
 You can easily access and configure these by opening the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and running the **Antigravity Auto Retry: Open Settings** command. You can also find them under the IDE's main Settings page by searching for "Antigravity Auto Retry".
 
