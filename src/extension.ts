@@ -8,7 +8,7 @@ let statusBarItem: vscode.StatusBarItem;
 
 export function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel('Antigravity Auto Retry');
-    
+
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBarItem.command = 'antigravityAutoRetry.toggle';
     context.subscriptions.push(statusBarItem);
@@ -64,7 +64,7 @@ function startAutoRetry(context: vscode.ExtensionContext) {
     const intervalMilliseconds = config.get<number>('intervalMilliseconds', 100);
 
     const scriptPath = path.join(context.extensionPath, 'scripts', 'auto-retry.ps1');
-    
+
     const args = [
         '-NoProfile',
         '-NonInteractive',

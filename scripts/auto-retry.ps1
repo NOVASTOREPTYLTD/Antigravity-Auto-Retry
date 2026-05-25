@@ -190,8 +190,29 @@ function Try-Retry {
         if ($retryButtons.Count -gt 0) {
             $script:lastRetryTime = Get-Date
             $script:currentBackoffSeconds = 0
-            Write-AutoRetryLog "Detected Retry in '$windowName', requesting native retry."
-            return Notify-RetryAction
+            
+            $button = $retryButtons[0]
+            try {
+                $invokePattern = $button.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern) -as [System.Windows.Automation.InvokePattern]
+                if ($null -ne $invokePattern) {
+                    Write-AutoRetryLog "Detected Retry in '$windowName', clicking it via UI Automation InvokePattern!"
+                    $invokePattern.Invoke()
+                } else {
+                    throw "No InvokePattern available"
+                }
+            } catch {
+                Write-AutoRetryLog "Detected Retry in '$windowName', InvokePattern failed. Falling back to MouseHelper."
+                try {
+                    $rect = $button.Current.BoundingRectangle
+                    $cx = [int]($rect.Left + ($rect.Width / 2))
+                    $cy = [int]($rect.Top + ($rect.Height / 2))
+                    [MouseHelper]::Click($cx, $cy)
+                    Write-AutoRetryLog "Clicked coordinates $cx, $cy via MouseHelper."
+                } catch {
+                    Write-AutoRetryLog "MouseHelper fallback also failed: $_"
+                }
+            }
+            return $true
         }
     }
 
@@ -214,23 +235,30 @@ Write-AutoRetryLog "This script passively detects the Retry button through UI Au
 Write-AutoRetryLog "Log file: $logFile"
 Write-AutoRetryLog "Press Ctrl+C to stop."
 
-while ($true) {
-    try {
-        [void](Try-Retry)
-    } catch {
-        Write-AutoRetryLog "Loop error: $($_.Exception.Message)"
-    }
+try {
+    while ($true) {
+        try {
+            [void](Try-Retry)
+        } catch {
+            Write-AutoRetryLog "Loop error: $($_.Exception.Message)"
+            Write-AutoRetryLog $_.ScriptStackTrace
+        }
 
-    if ($ExitWhenIdeMissingSeconds -gt 0 -and
-        $hasSeenIdeWindow -and
-        ((Get-Date) - $lastIdeSeenTime).TotalSeconds -ge $ExitWhenIdeMissingSeconds) {
-        Write-AutoRetryLog "Antigravity IDE has been closed for ${ExitWhenIdeMissingSeconds}s. Exiting."
-        break
-    }
+        if ($ExitWhenIdeMissingSeconds -gt 0 -and
+            $hasSeenIdeWindow -and
+            ((Get-Date) - $lastIdeSeenTime).TotalSeconds -ge $ExitWhenIdeMissingSeconds) {
+            Write-AutoRetryLog "Antigravity IDE has been closed for ${ExitWhenIdeMissingSeconds}s. Exiting."
+            break
+        }
 
-    if ($Once) {
-        break
-    }
+        if ($Once) {
+            break
+        }
 
-    Start-Sleep -Milliseconds $IntervalMilliseconds
+        Start-Sleep -Milliseconds $IntervalMilliseconds
+    }
+} catch {
+    Write-AutoRetryLog "Fatal error: $_"
+    Write-AutoRetryLog $_.ScriptStackTrace
+    exit 1
 }

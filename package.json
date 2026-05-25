@@ -2,7 +2,7 @@
   "name": "novastore-antigravity-auto-retry",
   "displayName": "Novastore Antigravity Auto Retry",
   "description": "Automatically clicks the Retry button for Antigravity IDE tasks",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "novastore",
   "publisherDisplayName": "NOVASTORE (PTY) LTD",
   "author": "NOVASTORE (PTY) LTD",

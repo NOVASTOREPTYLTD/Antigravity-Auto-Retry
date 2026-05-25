@@ -45,8 +45,8 @@ You can run any of these by opening the Command Palette (`Ctrl+Shift+P` on Windo
 
 You can monitor the live activity of the auto-retry script to verify it is scanning and clicking correctly:
 
-1. Go to **View** -> **Output** in the top menu (or press `Ctrl+Shift+U`).
-2. Click the dropdown menu on the top-right of the Output panel.
+1. Go to **View** -> **Output** in the top menu (or press `Ctrl+Shift+U`). This will open the Terminal area.
+2. In the terminal section at the top right, click the dropdown menu.
 3. Select **Antigravity Auto Retry**.
 
 If the extension is working properly, you will see `[PS] Auto Retry started` when it begins scanning, and `[EXT] Received retry signal. Submitted follow-up natively.` whenever it successfully clicks the retry button.
