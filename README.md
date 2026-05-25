@@ -9,6 +9,15 @@ This extension silently monitors the Antigravity IDE for failure states and auto
 * **Native Integration:** Directly triggers the retry command instead of clicking the UI.
 * **Non-intrusive:** Never steals your mouse or window focus.
 * **Smart Backoff:** Uses exponential backoff if the retry keeps failing.
+* **Status Indicator:** Shows a spinning icon in your bottom-right status bar so you always know when it's actively scanning.
+
+## Installation
+
+1. Open VS Code or Antigravity IDE.
+2. Go to the Extensions view (`Ctrl+Shift+X`).
+3. Search for **Novastore Antigravity Auto Retry**.
+4. Click **Install**.
+5. The auto-retry monitor will start automatically!
 
 ## Requirements
 
@@ -31,6 +40,16 @@ You can run any of these by opening the Command Palette (`Ctrl+Shift+P` on Windo
 * **Antigravity Auto Retry: Stop**
 * **Antigravity Auto Retry: Toggle** (Also available directly from the status bar)
 * **Antigravity Auto Retry: Open Settings** (Quickly open settings to edit retry speed)
+
+## Viewing Logs
+
+You can monitor the live activity of the auto-retry script to verify it is scanning and clicking correctly:
+
+1. Go to **View** -> **Output** in the top menu (or press `Ctrl+Shift+U`).
+2. Click the dropdown menu on the top-right of the Output panel.
+3. Select **Antigravity Auto Retry**.
+
+If the extension is working properly, you will see `[PS] Auto Retry started` when it begins scanning, and `[EXT] Received retry signal. Submitted follow-up natively.` whenever it successfully clicks the retry button.
 
 ## Support Development
 
