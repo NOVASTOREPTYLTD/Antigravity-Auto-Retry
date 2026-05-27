@@ -152,6 +152,17 @@ public class MouseHelper {
 }
 "@
 
+# Helper to save/restore the foreground window so clicking Retry
+# does not bring Antigravity IDE to the front of the screen.
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class FocusHelper {
+    [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+}
+"@
+
 
 function Notify-RetryAction {
     Write-Host "[ACTION] RETRY_REQUESTED"
@@ -192,6 +203,8 @@ function Try-Retry {
             $script:currentBackoffSeconds = 0
             
             $button = $retryButtons[0]
+            # Save the currently focused window so we can restore it after clicking
+            $previousForeground = [FocusHelper]::GetForegroundWindow()
             try {
                 $invokePattern = $button.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern) -as [System.Windows.Automation.InvokePattern]
                 if ($null -ne $invokePattern) {
@@ -211,6 +224,11 @@ function Try-Retry {
                 } catch {
                     Write-AutoRetryLog "MouseHelper fallback also failed: $_"
                 }
+            }
+            # Restore the previously focused window so the IDE doesn't steal focus
+            if ($previousForeground -ne [IntPtr]::Zero) {
+                Start-Sleep -Milliseconds 50
+                [void][FocusHelper]::SetForegroundWindow($previousForeground)
             }
             return $true
         }
