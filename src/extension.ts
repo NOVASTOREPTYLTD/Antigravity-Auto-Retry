@@ -29,8 +29,11 @@ export function activate(context: vscode.ExtensionContext) {
     const settingsCmd = vscode.commands.registerCommand('antigravityAutoRetry.openSettings', () => {
         vscode.commands.executeCommand('workbench.action.openSettings', 'antigravityAutoRetry');
     });
+    const testRetryCmd = vscode.commands.registerCommand('antigravityAutoRetry.testRetry', () => {
+        testRetry(context);
+    });
 
-    context.subscriptions.push(startCmd, stopCmd, toggleCmd, settingsCmd);
+    context.subscriptions.push(startCmd, stopCmd, toggleCmd, settingsCmd, testRetryCmd);
 
     // Watch for configuration changes
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
@@ -145,6 +148,40 @@ function updateStatusBar(isRunning: boolean) {
             statusBarItem.hide();
         }
     }
+}
+
+function testRetry(context: vscode.ExtensionContext) {
+    const scriptPath = path.join(context.extensionPath, 'scripts', 'mock-error-window.ps1');
+
+    outputChannel.appendLine('[TEST] Launching mock error window for testing...');
+    outputChannel.show(true); // Show output panel but don't steal focus
+
+    const env = { ...process.env };
+    delete env.PSModulePath;
+
+    const testProcess = spawn('powershell.exe', [
+        '-NoProfile',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', scriptPath
+    ], { env });
+
+    testProcess.stdout?.on('data', (data) => {
+        const msg = data.toString().trim();
+        if (msg) { outputChannel.appendLine(`[TEST] ${msg}`); }
+    });
+
+    testProcess.stderr?.on('data', (data) => {
+        const msg = data.toString().trim();
+        if (msg) { outputChannel.appendLine(`[TEST-ERR] ${msg}`); }
+    });
+
+    testProcess.on('close', (code) => {
+        outputChannel.appendLine(`[TEST] Mock window closed (exit code ${code}).`);
+    });
+
+    vscode.window.showInformationMessage(
+        'Mock error window opened! Watch the Output panel for auto-retry detection logs.'
+    );
 }
 
 export function deactivate() {

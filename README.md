@@ -40,6 +40,7 @@ You can run any of these by opening the Command Palette (`Ctrl+Shift+P` on Windo
 * **Antigravity Auto Retry: Stop**
 * **Antigravity Auto Retry: Toggle** (Also available directly from the status bar)
 * **Antigravity Auto Retry: Open Settings** (Quickly open settings to edit retry speed)
+* **Antigravity Auto Retry: Test Retry (Mock Window)** (Opens a mock error window to verify auto-retry detection and background clicking)
 
 ## Viewing Logs
 

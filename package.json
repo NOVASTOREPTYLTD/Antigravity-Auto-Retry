@@ -38,6 +38,10 @@
       {
         "command": "antigravityAutoRetry.openSettings",
         "title": "Antigravity Auto Retry: Open Settings"
+      },
+      {
+        "command": "antigravityAutoRetry.testRetry",
+        "title": "Antigravity Auto Retry: Test Retry (Mock Window)"
       }
     ],
     "configuration": {

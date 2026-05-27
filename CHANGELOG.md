@@ -4,6 +4,7 @@ All notable changes to the "antigravity-auto-retry" extension will be documented
 
 ## [1.0.4]
 - Fixed issue where the extension would steal focus and bring Antigravity IDE to the front when clicking the Retry button
+- Added **Test Retry (Mock Window)** command for verifying auto-retry detection and background clicking
 
 ## [1.0.3]
 - Fixed bug causing retry to sometimes not detect button
